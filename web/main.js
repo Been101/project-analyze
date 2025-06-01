@@ -1,4 +1,6 @@
 import cytoscape from "cytoscape";
+import dagre from "cytoscape-dagre";
+cytoscape.use(dagre);
 
 async function loadData() {
   const res = await fetch("/relation.json");
@@ -40,7 +42,7 @@ function makeElements(relations) {
   // 2. 函数和组件节点，并加包含边
   relations.forEach((fileInfo) => {
     const fileId = fileNodeMap.get(fileInfo.file);
-    // 函数节点
+    // 函数节点（包括组件函数）
     fileInfo.functions.forEach((fn) => {
       let label = fn.name;
       if (fn.isComponent && fn.isExportDefault) {
@@ -62,42 +64,14 @@ function makeElements(relations) {
           type: fn.isComponent ? "jsx" : "function",
           tooltip: `${fileInfo.file}:${fn.loc && fn.loc.start.line}`,
         },
-        position: { x: funcX * 200 + 100, y: fn.isComponent ? 0 : 300 },
       });
-      if (fn.isComponent) compX++;
-      else funcX++;
-      // 文件节点到导出组件函数节点（如 App.jsx → App【F+C】）的 contains 边
       if (!fn.isComponent || fn.isExportDefault) {
         edges.push({
           data: { source: fileId, target: funcId, label: "contains" },
         });
       }
     });
-    // 组件节点（只保留首字母大写的组件）
-    fileInfo.jsxComponents.forEach((comp) => {
-      if (!isComponentName(comp.name)) return;
-      const jsxId = `jsx_${fileId}_${comp.name}_${
-        comp.loc && comp.loc.start.line
-      }`;
-      jsxNodeMap.set(
-        `${fileInfo.file}:jsx:${comp.name}:${comp.loc && comp.loc.start.line}`,
-        jsxId
-      );
-      nodes.push({
-        data: {
-          id: jsxId,
-          label: `${comp.name}【C】`,
-          file: fileInfo.file,
-          line: comp.loc && comp.loc.start.line,
-          type: "jsx",
-          tooltip: `${fileInfo.file}:${comp.loc && comp.loc.start.line}`,
-        },
-        position: { x: compX * 200 + 100, y: 0 },
-      });
-      compX++;
-      // 不再添加 contains 边
-    });
-    // 原生标签节点（有事件绑定的）
+    // 只为有事件绑定的原生标签生成节点
     if (fileInfo.jsxEventCalls && fileInfo.jsxEventCalls.length > 0) {
       fileInfo.jsxEventCalls.forEach((eventCall) => {
         if (isComponentName(eventCall.component)) return; // 跳过组件
@@ -141,7 +115,7 @@ function makeElements(relations) {
     });
   });
 
-  // 4. 组件引用边
+  // 4. 组件引用边（jsx边直接连到组件函数节点）
   relations.forEach((fileInfo) => {
     fileInfo.jsxComponents.forEach((comp) => {
       if (!isComponentName(comp.name)) return;
@@ -149,9 +123,10 @@ function makeElements(relations) {
         if (otherFile === fileInfo) return;
         const fn = otherFile.functions.find((fn) => fn.name === comp.name);
         if (fn) {
-          const sourceId = jsxNodeMap.get(
-            `${fileInfo.file}:jsx:${comp.name}:${
-              comp.loc && comp.loc.start.line
+          const sourceId = funcNodeMap.get(
+            `${fileInfo.file}:${
+              fileInfo.functions.find((f) => f.isComponent && f.isExportDefault)
+                ?.name
             }`
           );
           const targetId = funcNodeMap.get(`${otherFile.file}:${fn.name}`);
@@ -165,25 +140,17 @@ function makeElements(relations) {
     });
   });
 
-  // 5. 组件函数的JSX包含关系（jsxContains）
+  // 5. 组件函数的JSX包含关系（jsxContains，直接连到组件函数节点）
   relations.forEach((fileInfo) => {
     if (fileInfo.jsxContains && fileInfo.jsxContains.length > 0) {
       fileInfo.jsxContains.forEach((contain) => {
         if (!isComponentName(contain.child)) return;
         const parentId = funcNodeMap.get(`${fileInfo.file}:${contain.parent}`);
         let childId = null;
-        for (const [k, v] of jsxNodeMap.entries()) {
-          if (k.startsWith(`${fileInfo.file}:jsx:${contain.child}:`)) {
+        for (const [k, v] of funcNodeMap.entries()) {
+          if (k.endsWith(`:${contain.child}`)) {
             childId = v;
             break;
-          }
-        }
-        if (!childId) {
-          for (const [k, v] of funcNodeMap.entries()) {
-            if (k.endsWith(`:${contain.child}`)) {
-              childId = v;
-              break;
-            }
           }
         }
         if (parentId && childId) {
@@ -200,27 +167,13 @@ function makeElements(relations) {
     if (fileInfo.jsxComponentTree && fileInfo.jsxComponentTree.length > 0) {
       fileInfo.jsxComponentTree.forEach((contain) => {
         const parentId = funcNodeMap.get(`${fileInfo.file}:${contain.parent}`);
-        // 先查组件节点
-        let childId = jsxNodeMap.get(
-          `${fileInfo.file}:jsx:${contain.child}:${
-            contain.loc && contain.loc.start.line
-          }`
-        );
-        // 再查 native 节点
+        // 只查组件函数节点和有事件的原生标签节点
+        let childId = funcNodeMap.get(`${fileInfo.file}:${contain.child}`);
         if (!childId) {
           childId = `native_${fileNodeMap.get(fileInfo.file)}_${
             contain.child
           }_${contain.loc && contain.loc.start.line}`;
           if (!nodes.some((n) => n.data.id === childId)) childId = null;
-        }
-        // 再查函数节点（组件函数）
-        if (!childId) {
-          for (const [k, v] of funcNodeMap.entries()) {
-            if (k.endsWith(`:${contain.child}`)) {
-              childId = v;
-              break;
-            }
-          }
         }
         if (parentId && childId) {
           edges.push({
@@ -238,11 +191,7 @@ function makeElements(relations) {
         // 只处理组件名和目标函数都存在的情况
         let sourceId = null;
         if (isComponentName(eventCall.component)) {
-          sourceId = jsxNodeMap.get(
-            `${fileInfo.file}:jsx:${eventCall.component}:${
-              eventCall.loc && eventCall.loc.start.line
-            }`
-          );
+          sourceId = funcNodeMap.get(`${fileInfo.file}:${eventCall.component}`);
         } else {
           sourceId = `native_${fileNodeMap.get(fileInfo.file)}_${
             eventCall.component
@@ -284,7 +233,14 @@ async function main() {
   const cy = (window.cy = cytoscape({
     container: document.getElementById("app"),
     elements: [...nodes, ...edges],
-    layout: { name: "cose", animate: true },
+    layout: {
+      name: "dagre",
+      rankDir: "TB",
+      nodeSep: 120,
+      edgeSep: 60,
+      rankSep: 180,
+      animate: true,
+    },
     style: [
       {
         selector: "node[type='file']",
@@ -455,29 +411,6 @@ async function main() {
       },
     ],
   }));
-
-  // 鼠标悬停显示 tooltip
-  cy.on("mouseover", "node", function (evt) {
-    const node = evt.target;
-    node.qtip && node.qtip.destroy();
-    const tooltip = node.data("tooltip");
-    if (tooltip) {
-      node.qtip = window.qTip({
-        target: node.popperRef(),
-        content: tooltip,
-        placement: "top",
-        show: true,
-        hide: false,
-      });
-    }
-  });
-  cy.on("mouseout", "node", function (evt) {
-    const node = evt.target;
-    if (node.qtip) {
-      node.qtip.destroy();
-      node.qtip = null;
-    }
-  });
 
   cy.on("tap", "node", function (evt) {
     const node = evt.target;
