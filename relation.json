@@ -20,12 +20,60 @@
           },
           "isExportDefault": false,
           "isComponent": false
+        },
+        {
+          "name": "sayHello",
+          "loc": {
+            "start": {
+              "line": 5,
+              "column": 7,
+              "index": 68
+            },
+            "end": {
+              "line": 8,
+              "column": 1,
+              "index": 142
+            }
+          },
+          "isExportDefault": false,
+          "isComponent": false
         }
       ],
-      "functionCalls": [],
+      "functionCalls": [
+        {
+          "name": "greet",
+          "loc": {
+            "start": {
+              "line": 7,
+              "column": 2,
+              "index": 125
+            },
+            "end": {
+              "line": 7,
+              "column": 16,
+              "index": 139
+            }
+          },
+          "targetFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/utils.js",
+          "targetLoc": {
+            "start": {
+              "line": 1,
+              "column": 7,
+              "index": 7
+            },
+            "end": {
+              "line": 3,
+              "column": 1,
+              "index": 59
+            }
+          },
+          "caller": "sayHello"
+        }
+      ],
       "jsxComponents": [],
       "jsxContains": [],
-      "jsxComponentTree": []
+      "jsxComponentTree": [],
+      "jsxEventCalls": []
     },
     {
       "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/Header.jsx",
@@ -75,7 +123,8 @@
         }
       ],
       "jsxContains": [],
-      "jsxComponentTree": []
+      "jsxComponentTree": [],
+      "jsxEventCalls": []
     },
     {
       "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/Footer.jsx",
@@ -163,7 +212,8 @@
             }
           }
         }
-      ]
+      ],
+      "jsxEventCalls": []
     },
     {
       "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/App.jsx",
@@ -189,40 +239,23 @@
         {
           "source": "./utils",
           "specifiers": [
-            "greet"
+            "sayHello"
           ]
         }
       ],
       "functions": [
         {
-          "name": "sayHello",
-          "loc": {
-            "start": {
-              "line": 6,
-              "column": 0,
-              "index": 123
-            },
-            "end": {
-              "line": 9,
-              "column": 1,
-              "index": 197
-            }
-          },
-          "isExportDefault": false,
-          "isComponent": false
-        },
-        {
           "name": "App",
           "loc": {
             "start": {
-              "line": 11,
+              "line": 6,
               "column": 15,
-              "index": 214
+              "index": 141
             },
             "end": {
-              "line": 20,
+              "line": 15,
               "column": 1,
-              "index": 375
+              "index": 302
             }
           },
           "isExportDefault": true,
@@ -231,59 +264,30 @@
       ],
       "functionCalls": [
         {
-          "name": "greet",
+          "name": "sayHello",
           "loc": {
             "start": {
-              "line": 8,
+              "line": 7,
               "column": 2,
-              "index": 180
+              "index": 160
             },
             "end": {
-              "line": 8,
-              "column": 16,
-              "index": 194
+              "line": 7,
+              "column": 12,
+              "index": 170
             }
           },
           "targetFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/utils.js",
           "targetLoc": {
             "start": {
-              "line": 1,
+              "line": 5,
               "column": 7,
-              "index": 7
+              "index": 68
             },
             "end": {
-              "line": 3,
+              "line": 8,
               "column": 1,
-              "index": 59
-            }
-          },
-          "caller": "sayHello"
-        },
-        {
-          "name": "sayHello",
-          "loc": {
-            "start": {
-              "line": 12,
-              "column": 2,
-              "index": 233
-            },
-            "end": {
-              "line": 12,
-              "column": 12,
-              "index": 243
-            }
-          },
-          "targetFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/App.jsx",
-          "targetLoc": {
-            "start": {
-              "line": 6,
-              "column": 0,
-              "index": 123
-            },
-            "end": {
-              "line": 9,
-              "column": 1,
-              "index": 197
+              "index": 142
             }
           },
           "caller": "App"
@@ -294,14 +298,14 @@
           "name": "div",
           "loc": {
             "start": {
-              "line": 14,
+              "line": 9,
               "column": 4,
-              "index": 260
+              "index": 187
             },
             "end": {
-              "line": 14,
+              "line": 9,
               "column": 9,
-              "index": 265
+              "index": 192
             }
           }
         },
@@ -309,14 +313,14 @@
           "name": "Header",
           "loc": {
             "start": {
-              "line": 15,
+              "line": 10,
               "column": 6,
-              "index": 272
+              "index": 199
             },
             "end": {
-              "line": 15,
+              "line": 10,
               "column": 16,
-              "index": 282
+              "index": 209
             }
           }
         },
@@ -324,14 +328,14 @@
           "name": "h1",
           "loc": {
             "start": {
-              "line": 16,
+              "line": 11,
               "column": 6,
-              "index": 289
+              "index": 216
             },
             "end": {
-              "line": 16,
+              "line": 11,
               "column": 29,
-              "index": 312
+              "index": 239
             }
           }
         },
@@ -339,14 +343,14 @@
           "name": "Footer",
           "loc": {
             "start": {
-              "line": 17,
+              "line": 12,
               "column": 6,
-              "index": 347
+              "index": 274
             },
             "end": {
-              "line": 17,
+              "line": 12,
               "column": 16,
-              "index": 357
+              "index": 284
             }
           }
         }
@@ -358,14 +362,30 @@
           "child": "Header",
           "loc": {
             "start": {
-              "line": 15,
+              "line": 10,
               "column": 6,
-              "index": 272
+              "index": 199
             },
             "end": {
-              "line": 15,
+              "line": 10,
               "column": 16,
-              "index": 282
+              "index": 209
+            }
+          }
+        },
+        {
+          "parent": "App",
+          "child": "h1",
+          "loc": {
+            "start": {
+              "line": 11,
+              "column": 6,
+              "index": 216
+            },
+            "end": {
+              "line": 11,
+              "column": 57,
+              "index": 267
             }
           }
         },
@@ -374,14 +394,33 @@
           "child": "Footer",
           "loc": {
             "start": {
-              "line": 17,
+              "line": 12,
               "column": 6,
-              "index": 347
+              "index": 274
             },
             "end": {
-              "line": 17,
+              "line": 12,
               "column": 16,
-              "index": 357
+              "index": 284
+            }
+          }
+        }
+      ],
+      "jsxEventCalls": [
+        {
+          "component": "h1",
+          "event": "onClick",
+          "target": "sayHello",
+          "loc": {
+            "start": {
+              "line": 11,
+              "column": 10,
+              "index": 220
+            },
+            "end": {
+              "line": 11,
+              "column": 28,
+              "index": 238
             }
           }
         }
@@ -435,7 +474,8 @@
         }
       ],
       "jsxContains": [],
-      "jsxComponentTree": []
+      "jsxComponentTree": [],
+      "jsxEventCalls": []
     }
   ]
 }

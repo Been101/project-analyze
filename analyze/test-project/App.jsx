@@ -1,12 +1,7 @@
 import React from "react";
 import Header from "./Header";
 import Footer from "./Footer";
-import { greet } from "./utils";
-
-function sayHello() {
-  console.log("Hello from App");
-  greet("World");
-}
+import { sayHello } from "./utils";
 
 export default function App() {
   sayHello();

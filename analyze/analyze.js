@@ -38,10 +38,9 @@ function extractJSXComponentTree(node, parent, result) {
     if (
       child.type === "JSXElement" &&
       child.openingElement &&
-      child.openingElement.name.type === "JSXIdentifier" &&
-      isComponentName(child.openingElement.name.name)
+      child.openingElement.name.type === "JSXIdentifier"
     ) {
-      // 只保留首字母大写的组件
+      // 组件或原生标签都记录
       result.push({
         parent,
         child: child.openingElement.name.name,
@@ -49,9 +48,6 @@ function extractJSXComponentTree(node, parent, result) {
       });
       // 递归子树
       extractJSXComponentTree(child, child.openingElement.name.name, result);
-    } else if (child.type === "JSXElement") {
-      // 递归子树，但不记录原生标签
-      extractJSXComponentTree(child, parent, result);
     }
   });
 }
@@ -102,6 +98,7 @@ files.forEach((file) => {
     jsxComponents: [],
     jsxContains: [],
     jsxComponentTree: [],
+    jsxEventCalls: [],
   };
   let exportDefaultName = null;
   traverse(ast, {
@@ -166,6 +163,24 @@ files.forEach((file) => {
         fileInfo.jsxComponents.push({
           name: path.node.name.name,
           loc: path.node.loc,
+        });
+        // 事件绑定分析
+        const eventProps = ["onClick", "onChange", "onInput", "onSubmit"];
+        (path.node.attributes || []).forEach((attr) => {
+          if (
+            attr.type === "JSXAttribute" &&
+            eventProps.includes(attr.name.name) &&
+            attr.value &&
+            attr.value.type === "JSXExpressionContainer" &&
+            attr.value.expression.type === "Identifier"
+          ) {
+            fileInfo.jsxEventCalls.push({
+              component: path.node.name.name,
+              event: attr.name.name,
+              target: attr.value.expression.name,
+              loc: attr.loc,
+            });
+          }
         });
       }
     },

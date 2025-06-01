@@ -97,6 +97,29 @@ function makeElements(relations) {
       compX++;
       // 不再添加 contains 边
     });
+    // 原生标签节点（有事件绑定的）
+    if (fileInfo.jsxEventCalls && fileInfo.jsxEventCalls.length > 0) {
+      fileInfo.jsxEventCalls.forEach((eventCall) => {
+        if (isComponentName(eventCall.component)) return; // 跳过组件
+        const nativeId = `native_${fileId}_${eventCall.component}_${
+          eventCall.loc && eventCall.loc.start.line
+        }`;
+        if (!nodes.some((n) => n.data.id === nativeId)) {
+          nodes.push({
+            data: {
+              id: nativeId,
+              label: `${eventCall.component}`,
+              file: fileInfo.file,
+              line: eventCall.loc && eventCall.loc.start.line,
+              type: "native",
+              tooltip: `${fileInfo.file}:${
+                eventCall.loc && eventCall.loc.start.line
+              }`,
+            },
+          });
+        }
+      });
+    }
   });
 
   // 3. 函数调用边（支持跨文件，caller为source）
@@ -172,19 +195,25 @@ function makeElements(relations) {
     }
   });
 
-  // 6. 组件函数的JSX父子关系（jsxComponentTree）
+  // 6. 组件函数的JSX父子关系（jsxComponentTree，支持 native 节点）
   relations.forEach((fileInfo) => {
     if (fileInfo.jsxComponentTree && fileInfo.jsxComponentTree.length > 0) {
       fileInfo.jsxComponentTree.forEach((contain) => {
-        if (!isComponentName(contain.child)) return;
         const parentId = funcNodeMap.get(`${fileInfo.file}:${contain.parent}`);
-        let childId = null;
-        for (const [k, v] of jsxNodeMap.entries()) {
-          if (k.startsWith(`${fileInfo.file}:jsx:${contain.child}:`)) {
-            childId = v;
-            break;
-          }
+        // 先查组件节点
+        let childId = jsxNodeMap.get(
+          `${fileInfo.file}:jsx:${contain.child}:${
+            contain.loc && contain.loc.start.line
+          }`
+        );
+        // 再查 native 节点
+        if (!childId) {
+          childId = `native_${fileNodeMap.get(fileInfo.file)}_${
+            contain.child
+          }_${contain.loc && contain.loc.start.line}`;
+          if (!nodes.some((n) => n.data.id === childId)) childId = null;
         }
+        // 再查函数节点（组件函数）
         if (!childId) {
           for (const [k, v] of funcNodeMap.entries()) {
             if (k.endsWith(`:${contain.child}`)) {
@@ -196,6 +225,44 @@ function makeElements(relations) {
         if (parentId && childId) {
           edges.push({
             data: { source: parentId, target: childId, label: "jsx-parent" },
+          });
+        }
+      });
+    }
+  });
+
+  // 7. 事件绑定边（jsxEventCalls）
+  relations.forEach((fileInfo) => {
+    if (fileInfo.jsxEventCalls && fileInfo.jsxEventCalls.length > 0) {
+      fileInfo.jsxEventCalls.forEach((eventCall) => {
+        // 只处理组件名和目标函数都存在的情况
+        let sourceId = null;
+        if (isComponentName(eventCall.component)) {
+          sourceId = jsxNodeMap.get(
+            `${fileInfo.file}:jsx:${eventCall.component}:${
+              eventCall.loc && eventCall.loc.start.line
+            }`
+          );
+        } else {
+          sourceId = `native_${fileNodeMap.get(fileInfo.file)}_${
+            eventCall.component
+          }_${eventCall.loc && eventCall.loc.start.line}`;
+        }
+        // 目标函数可能在本文件或其他文件
+        let targetId = null;
+        for (const [k, v] of funcNodeMap.entries()) {
+          if (k.endsWith(`:${eventCall.target}`)) {
+            targetId = v;
+            break;
+          }
+        }
+        if (sourceId && targetId) {
+          edges.push({
+            data: {
+              source: sourceId,
+              target: targetId,
+              label: eventCall.event,
+            },
           });
         }
       });
@@ -271,6 +338,23 @@ async function main() {
         },
       },
       {
+        selector: "node[type='native']",
+        style: {
+          label: "data(label)",
+          "background-color": "#888",
+          color: "#fff",
+          shape: "diamond",
+          "text-valign": "center",
+          "text-halign": "center",
+          "text-wrap": "wrap",
+          "text-max-width": 80,
+          width: "label",
+          height: 40,
+          padding: "4px",
+          "font-size": 14,
+        },
+      },
+      {
         selector: "edge[label='contains']",
         style: {
           width: 2,
@@ -323,6 +407,50 @@ async function main() {
           "target-arrow-shape": "triangle",
           "curve-style": "bezier",
           label: "jsx-parent",
+        },
+      },
+      {
+        selector: "edge[label='onClick']",
+        style: {
+          width: 2,
+          "line-color": "#FFDC00",
+          "target-arrow-color": "#FFDC00",
+          "target-arrow-shape": "triangle",
+          "curve-style": "bezier",
+          label: "data(label)",
+        },
+      },
+      {
+        selector: "edge[label='onChange']",
+        style: {
+          width: 2,
+          "line-color": "#FFDC00",
+          "target-arrow-color": "#FFDC00",
+          "target-arrow-shape": "triangle",
+          "curve-style": "bezier",
+          label: "data(label)",
+        },
+      },
+      {
+        selector: "edge[label='onInput']",
+        style: {
+          width: 2,
+          "line-color": "#FFDC00",
+          "target-arrow-color": "#FFDC00",
+          "target-arrow-shape": "triangle",
+          "curve-style": "bezier",
+          label: "data(label)",
+        },
+      },
+      {
+        selector: "edge[label='onSubmit']",
+        style: {
+          width: 2,
+          "line-color": "#FFDC00",
+          "target-arrow-color": "#FFDC00",
+          "target-arrow-shape": "triangle",
+          "curve-style": "bezier",
+          label: "data(label)",
         },
       },
     ],
