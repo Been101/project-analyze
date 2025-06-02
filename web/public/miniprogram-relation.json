@@ -18,18 +18,12 @@
         {
           "source": "../../behaviors/behavior",
           "specifiers": [
-            "dataBehavior"
+            "dataBehavior",
+            "eventBehavior"
           ]
         }
       ],
       "functions": [
-        {
-          "name": "Page",
-          "loc": null,
-          "isExportDefault": false,
-          "isComponent": false,
-          "isMiniProgramPage": true
-        },
         {
           "name": "getData",
           "loc": {
@@ -52,17 +46,45 @@
           "behaviorFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/behaviors/behavior.js"
         },
         {
+          "name": "initEvent",
+          "loc": {
+            "start": {
+              "line": 15,
+              "column": 4,
+              "index": 275
+            },
+            "end": {
+              "line": 21,
+              "column": 5,
+              "index": 427
+            }
+          },
+          "isExportDefault": false,
+          "isComponent": false,
+          "isMiniProgramMethod": true,
+          "fromBehavior": true,
+          "behaviorName": "eventBehavior",
+          "behaviorFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/behaviors/behavior.js"
+        },
+        {
+          "name": "Page",
+          "loc": null,
+          "isExportDefault": false,
+          "isComponent": false,
+          "isMiniProgramPage": true
+        },
+        {
           "name": "onLoad",
           "loc": {
             "start": {
               "line": 7,
               "column": 2,
-              "index": 114
+              "index": 129
             },
             "end": {
-              "line": 9,
+              "line": 10,
               "column": 3,
-              "index": 166
+              "index": 203
             }
           },
           "isExportDefault": false,
@@ -73,14 +95,14 @@
           "name": "handleTap",
           "loc": {
             "start": {
-              "line": 12,
+              "line": 13,
               "column": 4,
-              "index": 214
+              "index": 266
             },
             "end": {
-              "line": 14,
+              "line": 15,
               "column": 5,
-              "index": 261
+              "index": 313
             }
           },
           "isExportDefault": false,
@@ -91,14 +113,14 @@
           "name": "getList",
           "loc": {
             "start": {
-              "line": 15,
+              "line": 16,
               "column": 4,
-              "index": 267
+              "index": 319
             },
             "end": {
-              "line": 17,
+              "line": 18,
               "column": 5,
-              "index": 313
+              "index": 365
             }
           },
           "isExportDefault": false,
@@ -107,6 +129,24 @@
         }
       ],
       "functionCalls": [
+        {
+          "caller": "onLoad",
+          "name": "initEvent",
+          "targetFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/behaviors/behavior.js",
+          "targetLoc": {
+            "start": {
+              "line": 15,
+              "column": 4,
+              "index": 275
+            },
+            "end": {
+              "line": 21,
+              "column": 5,
+              "index": 427
+            }
+          },
+          "fromBehavior": true
+        },
         {
           "caller": "getList",
           "name": "getData",
@@ -121,6 +161,24 @@
               "line": 9,
               "column": 5,
               "index": 206
+            }
+          },
+          "fromBehavior": true
+        },
+        {
+          "caller": "onLoad",
+          "name": "initEvent",
+          "targetFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/behaviors/behavior.js",
+          "targetLoc": {
+            "start": {
+              "line": 15,
+              "column": 4,
+              "index": 275
+            },
+            "end": {
+              "line": 21,
+              "column": 5,
+              "index": 427
             }
           },
           "fromBehavior": true
@@ -168,6 +226,10 @@
         {
           "name": "dataBehavior",
           "importSource": "../../behaviors/behavior"
+        },
+        {
+          "name": "eventBehavior",
+          "importSource": "../../behaviors/behavior"
         }
       ]
     },
@@ -207,6 +269,24 @@
               "line": 9,
               "column": 5,
               "index": 206
+            }
+          },
+          "isExportDefault": false,
+          "isComponent": false,
+          "isMiniProgramMethod": true
+        },
+        {
+          "name": "initEvent",
+          "loc": {
+            "start": {
+              "line": 15,
+              "column": 4,
+              "index": 275
+            },
+            "end": {
+              "line": 21,
+              "column": 5,
+              "index": 427
             }
           },
           "isExportDefault": false,

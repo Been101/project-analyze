@@ -1,4 +1,4 @@
-import { dataBehavior } from "../../behaviors/behavior";
+import { dataBehavior, eventBehavior } from "../../behaviors/behavior";
 
 Page({
   data: {
@@ -6,8 +6,9 @@ Page({
   },
   onLoad() {
     console.log("Index page loaded");
+    this.initEvent();
   },
-  behaviors: [dataBehavior],
+  behaviors: [dataBehavior, eventBehavior],
   methods: {
     handleTap() {
       console.log("点击了按钮");

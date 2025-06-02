@@ -19,7 +19,7 @@ patterns.forEach((pattern) => {
 });
 
 console.log("待分析文件数:", files.length);
-console.log("文件列表:", files);
+// console.log("文件列表:", files);
 
 const relations = [];
 const globalFunctions = [];
@@ -72,7 +72,7 @@ const parseMethodsFromPageOrComponent = (
             prop.key.name
           ) {
             if (prop.key.name === "getList") {
-              console.log("getList AST:", JSON.stringify(prop, null, 2));
+              // console.log("getList AST:", JSON.stringify(prop, null, 2));
             }
             addFunctionIfNotExists(fileInfo.functions, {
               name: prop.key.name,
@@ -100,12 +100,12 @@ const parseMethodsFromPageOrComponent = (
                       behaviorsMethodsMap &&
                       behaviorsMethodsMap[calledName]
                     ) {
-                      console.log(
-                        "functionCalls push (behavior)",
-                        prop.key.name,
-                        calledName,
-                        behaviorsMethodsMap[calledName]
-                      );
+                      // console.log(
+                      //   "functionCalls push (behavior)",
+                      //   prop.key.name,
+                      //   calledName,
+                      //   behaviorsMethodsMap[calledName]
+                      // );
                       fileInfo.functionCalls.push({
                         caller: prop.key.name,
                         name: calledName,
@@ -114,11 +114,11 @@ const parseMethodsFromPageOrComponent = (
                         fromBehavior: true,
                       });
                     } else {
-                      console.log(
-                        "functionCalls push (local)",
-                        prop.key.name,
-                        calledName
-                      );
+                      // console.log(
+                      //   "functionCalls push (local)",
+                      //   prop.key.name,
+                      //   calledName
+                      // );
                       fileInfo.functionCalls.push({
                         caller: prop.key.name,
                         name: calledName,
@@ -142,12 +142,12 @@ const parseMethodsFromPageOrComponent = (
                       behaviorsMethodsMap &&
                       behaviorsMethodsMap[calledName]
                     ) {
-                      console.log(
-                        "functionCalls push (behavior)",
-                        prop.key.name,
-                        calledName,
-                        behaviorsMethodsMap[calledName]
-                      );
+                      // console.log(
+                      //   "functionCalls push (behavior)",
+                      //   prop.key.name,
+                      //   calledName,
+                      //   behaviorsMethodsMap[calledName]
+                      // );
                       fileInfo.functionCalls.push({
                         caller: prop.key.name,
                         name: calledName,
@@ -156,11 +156,11 @@ const parseMethodsFromPageOrComponent = (
                         fromBehavior: true,
                       });
                     } else {
-                      console.log(
-                        "functionCalls push (local)",
-                        prop.key.name,
-                        calledName
-                      );
+                      // console.log(
+                      //   "functionCalls push (local)",
+                      //   prop.key.name,
+                      //   calledName
+                      // );
                       fileInfo.functionCalls.push({
                         caller: prop.key.name,
                         name: calledName,
@@ -194,12 +194,12 @@ const parseMethodsFromPageOrComponent = (
                       behaviorsMethodsMap &&
                       behaviorsMethodsMap[calledName]
                     ) {
-                      console.log(
-                        "functionCalls push (behavior)",
-                        prop.key.name,
-                        calledName,
-                        behaviorsMethodsMap[calledName]
-                      );
+                      // console.log(
+                      //   "functionCalls push (behavior)",
+                      //   prop.key.name,
+                      //   calledName,
+                      //   behaviorsMethodsMap[calledName]
+                      // );
                       fileInfo.functionCalls.push({
                         caller: prop.key.name,
                         name: calledName,
@@ -208,11 +208,11 @@ const parseMethodsFromPageOrComponent = (
                         fromBehavior: true,
                       });
                     } else {
-                      console.log(
-                        "functionCalls push (local)",
-                        prop.key.name,
-                        calledName
-                      );
+                      // console.log(
+                      //   "functionCalls push (local)",
+                      //   prop.key.name,
+                      //   calledName
+                      // );
                       fileInfo.functionCalls.push({
                         caller: prop.key.name,
                         name: calledName,
@@ -386,7 +386,6 @@ files.forEach((file) => {
   if (fs.existsSync(jsonPath)) {
     try {
       const jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
-      console.log("jsonData", jsonData);
       if (jsonData.usingComponents) {
         for (const [name, pathVal] of Object.entries(
           jsonData.usingComponents
@@ -441,23 +440,42 @@ files.forEach((file) => {
               plugins: ["jsx", "typescript"],
             });
             traverse(bhAst, {
-              ObjectProperty(path) {
-                if (
-                  path.node.key.name === "methods" &&
-                  path.node.value.type === "ObjectExpression"
-                ) {
-                  path.node.value.properties.forEach((prop) => {
-                    if (
-                      (prop.type === "ObjectMethod" ||
-                        prop.type === "ObjectProperty") &&
-                      prop.key &&
-                      prop.key.name
-                    ) {
-                      behaviorsMethodsMap[prop.key.name] = {
-                        file: behaviorFile,
-                        loc: prop.loc || null,
-                      };
-                    }
+              VariableDeclarator(path) {
+                if (path.node.id.name === bh.name) {
+                  path.traverse({
+                    ObjectProperty(path) {
+                      if (
+                        path.node.key.name === "methods" &&
+                        path.node.value.type === "ObjectExpression"
+                      ) {
+                        path.node.value.properties.forEach((prop) => {
+                          if (
+                            (prop.type === "ObjectMethod" ||
+                              prop.type === "ObjectProperty") &&
+                            prop.key &&
+                            prop.key.name
+                          ) {
+                            console.log("bh.name", bh.name);
+                            console.log("prop.key.name", prop.key.name);
+                            addFunctionIfNotExists(fileInfo.functions, {
+                              name: prop.key.name,
+                              loc: prop.loc || null,
+                              isExportDefault: false,
+                              isComponent: false,
+                              isMiniProgramMethod: true,
+                              fromBehavior: true,
+                              behaviorName: bh.name,
+                              behaviorFile: behaviorFile,
+                            });
+                            // 关键：补充 behaviorsMethodsMap
+                            behaviorsMethodsMap[prop.key.name] = {
+                              file: behaviorFile,
+                              loc: prop.loc || null,
+                            };
+                          }
+                        });
+                      }
+                    },
                   });
                 }
               },
@@ -493,35 +511,44 @@ files.forEach((file) => {
                 sourceType: "module",
                 plugins: ["jsx", "typescript"],
               });
+              console.log("bhAst ---> ");
               traverse(bhAst, {
-                ObjectProperty(path) {
-                  if (
-                    path.node.key.name === "methods" &&
-                    path.node.value.type === "ObjectExpression"
-                  ) {
-                    path.node.value.properties.forEach((prop) => {
-                      if (
-                        (prop.type === "ObjectMethod" ||
-                          prop.type === "ObjectProperty") &&
-                        prop.key &&
-                        prop.key.name
-                      ) {
-                        addFunctionIfNotExists(fileInfo.functions, {
-                          name: prop.key.name,
-                          loc: prop.loc || null,
-                          isExportDefault: false,
-                          isComponent: false,
-                          isMiniProgramMethod: true,
-                          fromBehavior: true,
-                          behaviorName: bh.name,
-                          behaviorFile: behaviorFile,
-                        });
-                        // 关键：补充 behaviorsMethodsMap
-                        behaviorsMethodsMap[prop.key.name] = {
-                          file: behaviorFile,
-                          loc: prop.loc || null,
-                        };
-                      }
+                VariableDeclarator(path) {
+                  if (path.node.id.name === bh.name) {
+                    path.traverse({
+                      ObjectProperty(path) {
+                        if (
+                          path.node.key.name === "methods" &&
+                          path.node.value.type === "ObjectExpression"
+                        ) {
+                          path.node.value.properties.forEach((prop) => {
+                            if (
+                              (prop.type === "ObjectMethod" ||
+                                prop.type === "ObjectProperty") &&
+                              prop.key &&
+                              prop.key.name
+                            ) {
+                              console.log("bh.name", bh.name);
+                              console.log("prop.key.name", prop.key.name);
+                              addFunctionIfNotExists(fileInfo.functions, {
+                                name: prop.key.name,
+                                loc: prop.loc || null,
+                                isExportDefault: false,
+                                isComponent: false,
+                                isMiniProgramMethod: true,
+                                fromBehavior: true,
+                                behaviorName: bh.name,
+                                behaviorFile: behaviorFile,
+                              });
+                              // 关键：补充 behaviorsMethodsMap
+                              behaviorsMethodsMap[prop.key.name] = {
+                                file: behaviorFile,
+                                loc: prop.loc || null,
+                              };
+                            }
+                          });
+                        }
+                      },
                     });
                   }
                 },
@@ -549,7 +576,7 @@ files.forEach((file) => {
   parseMethodsFromPageOrComponent(ast, fileInfo, behaviorsMethodsMap);
   // 在 relations.push(fileInfo) 前输出 home/home.js 的 functionCalls
   if (fileInfo.file.includes("home/home.js")) {
-    console.log("home/home.js functionCalls:", fileInfo.functionCalls);
+    // console.log("home/home.js functionCalls:", fileInfo.functionCalls);
   }
   relations.push(fileInfo);
 });
