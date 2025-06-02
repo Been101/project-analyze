@@ -1,0 +1,4 @@
+view {
+  color: #07c160;
+  font-weight: bold;
+}

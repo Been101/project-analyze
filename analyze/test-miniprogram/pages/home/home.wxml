@@ -1,0 +1,5 @@
+<view>
+  <text>{{msg}}</text>
+  <button bindtap="handleTap">点我</button>
+  <Hello />
+</view>

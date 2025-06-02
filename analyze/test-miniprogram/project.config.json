@@ -1,0 +1,7 @@
+{
+  "miniprogramRoot": "./",
+  "description": "测试用微信小程序项目",
+  "setting": {
+    "urlCheck": false
+  }
+}

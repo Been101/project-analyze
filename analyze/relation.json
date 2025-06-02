@@ -1,0 +1,227 @@
+{
+  "relations": [
+    {
+      "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/app.js",
+      "imports": [],
+      "functions": [],
+      "functionCalls": [],
+      "jsxComponents": [],
+      "jsxContains": [],
+      "jsxComponentTree": [],
+      "jsxEventCalls": [],
+      "usingComponents": [],
+      "behaviors": []
+    },
+    {
+      "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/pages/home/home.js",
+      "imports": [
+        {
+          "source": "../../behaviors/behavior",
+          "specifiers": [
+            "dataBehavior"
+          ]
+        }
+      ],
+      "functions": [
+        {
+          "name": "Page",
+          "loc": null,
+          "isExportDefault": false,
+          "isComponent": false,
+          "isMiniProgramPage": true
+        },
+        {
+          "name": "getData",
+          "loc": {
+            "start": {
+              "line": 3,
+              "column": 4,
+              "index": 56
+            },
+            "end": {
+              "line": 9,
+              "column": 5,
+              "index": 206
+            }
+          },
+          "isExportDefault": false,
+          "isComponent": false,
+          "isMiniProgramMethod": true,
+          "fromBehavior": true,
+          "behaviorName": "dataBehavior",
+          "behaviorFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/behaviors/behavior.js"
+        },
+        {
+          "name": "onLoad",
+          "loc": {
+            "start": {
+              "line": 7,
+              "column": 2,
+              "index": 114
+            },
+            "end": {
+              "line": 9,
+              "column": 3,
+              "index": 166
+            }
+          },
+          "isExportDefault": false,
+          "isComponent": false,
+          "isMiniProgramMethod": true
+        },
+        {
+          "name": "handleTap",
+          "loc": {
+            "start": {
+              "line": 12,
+              "column": 4,
+              "index": 214
+            },
+            "end": {
+              "line": 14,
+              "column": 5,
+              "index": 261
+            }
+          },
+          "isExportDefault": false,
+          "isComponent": false,
+          "isMiniProgramMethod": true
+        },
+        {
+          "name": "getList",
+          "loc": {
+            "start": {
+              "line": 15,
+              "column": 4,
+              "index": 267
+            },
+            "end": {
+              "line": 17,
+              "column": 5,
+              "index": 313
+            }
+          },
+          "isExportDefault": false,
+          "isComponent": false,
+          "isMiniProgramMethod": true
+        }
+      ],
+      "functionCalls": [
+        {
+          "caller": "getList",
+          "name": "getData",
+          "targetFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/behaviors/behavior.js",
+          "targetLoc": {
+            "start": {
+              "line": 3,
+              "column": 4,
+              "index": 56
+            },
+            "end": {
+              "line": 9,
+              "column": 5,
+              "index": 206
+            }
+          },
+          "fromBehavior": true
+        },
+        {
+          "caller": "getList",
+          "name": "getData",
+          "targetFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/behaviors/behavior.js",
+          "targetLoc": {
+            "start": {
+              "line": 3,
+              "column": 4,
+              "index": 56
+            },
+            "end": {
+              "line": 9,
+              "column": 5,
+              "index": 206
+            }
+          },
+          "fromBehavior": true
+        }
+      ],
+      "jsxComponents": [],
+      "jsxContains": [],
+      "jsxComponentTree": [],
+      "jsxEventCalls": [
+        {
+          "component": "button",
+          "event": "bindtap",
+          "target": "handleTap",
+          "loc": {
+            "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/pages/home/home.wxml",
+            "line": 3
+          }
+        }
+      ],
+      "usingComponents": [
+        {
+          "name": "Hello",
+          "path": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/components/Hello/Hello.js"
+        }
+      ],
+      "behaviors": [
+        {
+          "name": "dataBehavior",
+          "importSource": "../../behaviors/behavior"
+        }
+      ]
+    },
+    {
+      "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/components/Hello/Hello.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "Component",
+          "loc": null,
+          "isExportDefault": false,
+          "isComponent": true,
+          "isMiniProgramComponent": true
+        }
+      ],
+      "functionCalls": [],
+      "jsxComponents": [],
+      "jsxContains": [],
+      "jsxComponentTree": [],
+      "jsxEventCalls": [],
+      "usingComponents": [],
+      "behaviors": []
+    },
+    {
+      "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/behaviors/behavior.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "getData",
+          "loc": {
+            "start": {
+              "line": 3,
+              "column": 4,
+              "index": 56
+            },
+            "end": {
+              "line": 9,
+              "column": 5,
+              "index": 206
+            }
+          },
+          "isExportDefault": false,
+          "isComponent": false,
+          "isMiniProgramMethod": true
+        }
+      ],
+      "functionCalls": [],
+      "jsxComponents": [],
+      "jsxContains": [],
+      "jsxComponentTree": [],
+      "jsxEventCalls": [],
+      "usingComponents": [],
+      "behaviors": [],
+      "isBehavior": true
+    }
+  ]
+}

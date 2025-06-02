@@ -1,0 +1,481 @@
+{
+  "relations": [
+    {
+      "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/utils.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "greet",
+          "loc": {
+            "start": {
+              "line": 1,
+              "column": 7,
+              "index": 7
+            },
+            "end": {
+              "line": 3,
+              "column": 1,
+              "index": 59
+            }
+          },
+          "isExportDefault": false,
+          "isComponent": false
+        },
+        {
+          "name": "sayHello",
+          "loc": {
+            "start": {
+              "line": 5,
+              "column": 7,
+              "index": 68
+            },
+            "end": {
+              "line": 8,
+              "column": 1,
+              "index": 142
+            }
+          },
+          "isExportDefault": false,
+          "isComponent": false
+        }
+      ],
+      "functionCalls": [
+        {
+          "name": "greet",
+          "loc": {
+            "start": {
+              "line": 7,
+              "column": 2,
+              "index": 125
+            },
+            "end": {
+              "line": 7,
+              "column": 16,
+              "index": 139
+            }
+          },
+          "targetFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/utils.js",
+          "targetLoc": {
+            "start": {
+              "line": 1,
+              "column": 7,
+              "index": 7
+            },
+            "end": {
+              "line": 3,
+              "column": 1,
+              "index": 59
+            }
+          },
+          "caller": "sayHello"
+        }
+      ],
+      "jsxComponents": [],
+      "jsxContains": [],
+      "jsxComponentTree": [],
+      "jsxEventCalls": []
+    },
+    {
+      "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/Header.jsx",
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React"
+          ]
+        }
+      ],
+      "functions": [
+        {
+          "name": "Header",
+          "loc": {
+            "start": {
+              "line": 3,
+              "column": 15,
+              "index": 43
+            },
+            "end": {
+              "line": 5,
+              "column": 1,
+              "index": 103
+            }
+          },
+          "isExportDefault": true,
+          "isComponent": true
+        }
+      ],
+      "functionCalls": [],
+      "jsxComponents": [
+        {
+          "name": "header",
+          "loc": {
+            "start": {
+              "line": 4,
+              "column": 9,
+              "index": 72
+            },
+            "end": {
+              "line": 4,
+              "column": 17,
+              "index": 80
+            }
+          }
+        }
+      ],
+      "jsxContains": [],
+      "jsxComponentTree": [],
+      "jsxEventCalls": []
+    },
+    {
+      "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/Footer.jsx",
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React"
+          ]
+        },
+        {
+          "source": "./components/Sumbit",
+          "specifiers": [
+            "Submit"
+          ]
+        }
+      ],
+      "functions": [
+        {
+          "name": "Footer",
+          "loc": {
+            "start": {
+              "line": 4,
+              "column": 15,
+              "index": 85
+            },
+            "end": {
+              "line": 11,
+              "column": 1,
+              "index": 187
+            }
+          },
+          "isExportDefault": true,
+          "isComponent": true
+        }
+      ],
+      "functionCalls": [],
+      "jsxComponents": [
+        {
+          "name": "div",
+          "loc": {
+            "start": {
+              "line": 6,
+              "column": 4,
+              "index": 120
+            },
+            "end": {
+              "line": 6,
+              "column": 9,
+              "index": 125
+            }
+          }
+        },
+        {
+          "name": "Submit",
+          "loc": {
+            "start": {
+              "line": 8,
+              "column": 6,
+              "index": 150
+            },
+            "end": {
+              "line": 8,
+              "column": 14,
+              "index": 158
+            }
+          }
+        }
+      ],
+      "jsxContains": [],
+      "jsxComponentTree": [
+        {
+          "parent": "Footer",
+          "child": "Submit",
+          "loc": {
+            "start": {
+              "line": 8,
+              "column": 6,
+              "index": 150
+            },
+            "end": {
+              "line": 8,
+              "column": 25,
+              "index": 169
+            }
+          }
+        }
+      ],
+      "jsxEventCalls": []
+    },
+    {
+      "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/App.jsx",
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React"
+          ]
+        },
+        {
+          "source": "./Header",
+          "specifiers": [
+            "Header"
+          ]
+        },
+        {
+          "source": "./Footer",
+          "specifiers": [
+            "Footer"
+          ]
+        },
+        {
+          "source": "./utils",
+          "specifiers": [
+            "sayHello"
+          ]
+        }
+      ],
+      "functions": [
+        {
+          "name": "App",
+          "loc": {
+            "start": {
+              "line": 6,
+              "column": 15,
+              "index": 141
+            },
+            "end": {
+              "line": 15,
+              "column": 1,
+              "index": 302
+            }
+          },
+          "isExportDefault": true,
+          "isComponent": true
+        }
+      ],
+      "functionCalls": [
+        {
+          "name": "sayHello",
+          "loc": {
+            "start": {
+              "line": 7,
+              "column": 2,
+              "index": 160
+            },
+            "end": {
+              "line": 7,
+              "column": 12,
+              "index": 170
+            }
+          },
+          "targetFile": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/utils.js",
+          "targetLoc": {
+            "start": {
+              "line": 5,
+              "column": 7,
+              "index": 68
+            },
+            "end": {
+              "line": 8,
+              "column": 1,
+              "index": 142
+            }
+          },
+          "caller": "App"
+        }
+      ],
+      "jsxComponents": [
+        {
+          "name": "div",
+          "loc": {
+            "start": {
+              "line": 9,
+              "column": 4,
+              "index": 187
+            },
+            "end": {
+              "line": 9,
+              "column": 9,
+              "index": 192
+            }
+          }
+        },
+        {
+          "name": "Header",
+          "loc": {
+            "start": {
+              "line": 10,
+              "column": 6,
+              "index": 199
+            },
+            "end": {
+              "line": 10,
+              "column": 16,
+              "index": 209
+            }
+          }
+        },
+        {
+          "name": "h1",
+          "loc": {
+            "start": {
+              "line": 11,
+              "column": 6,
+              "index": 216
+            },
+            "end": {
+              "line": 11,
+              "column": 29,
+              "index": 239
+            }
+          }
+        },
+        {
+          "name": "Footer",
+          "loc": {
+            "start": {
+              "line": 12,
+              "column": 6,
+              "index": 274
+            },
+            "end": {
+              "line": 12,
+              "column": 16,
+              "index": 284
+            }
+          }
+        }
+      ],
+      "jsxContains": [],
+      "jsxComponentTree": [
+        {
+          "parent": "App",
+          "child": "Header",
+          "loc": {
+            "start": {
+              "line": 10,
+              "column": 6,
+              "index": 199
+            },
+            "end": {
+              "line": 10,
+              "column": 16,
+              "index": 209
+            }
+          }
+        },
+        {
+          "parent": "App",
+          "child": "h1",
+          "loc": {
+            "start": {
+              "line": 11,
+              "column": 6,
+              "index": 216
+            },
+            "end": {
+              "line": 11,
+              "column": 57,
+              "index": 267
+            }
+          }
+        },
+        {
+          "parent": "App",
+          "child": "Footer",
+          "loc": {
+            "start": {
+              "line": 12,
+              "column": 6,
+              "index": 274
+            },
+            "end": {
+              "line": 12,
+              "column": 16,
+              "index": 284
+            }
+          }
+        }
+      ],
+      "jsxEventCalls": [
+        {
+          "component": "h1",
+          "event": "onClick",
+          "target": "sayHello",
+          "loc": {
+            "start": {
+              "line": 11,
+              "column": 10,
+              "index": 220
+            },
+            "end": {
+              "line": 11,
+              "column": 28,
+              "index": 238
+            }
+          }
+        }
+      ]
+    },
+    {
+      "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-project/components/Sumbit.jsx",
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React"
+          ]
+        }
+      ],
+      "functions": [
+        {
+          "name": "Submit",
+          "loc": {
+            "start": {
+              "line": 3,
+              "column": 15,
+              "index": 43
+            },
+            "end": {
+              "line": 5,
+              "column": 1,
+              "index": 98
+            }
+          },
+          "isExportDefault": true,
+          "isComponent": true
+        }
+      ],
+      "functionCalls": [],
+      "jsxComponents": [
+        {
+          "name": "button",
+          "loc": {
+            "start": {
+              "line": 4,
+              "column": 9,
+              "index": 72
+            },
+            "end": {
+              "line": 4,
+              "column": 17,
+              "index": 80
+            }
+          }
+        }
+      ],
+      "jsxContains": [],
+      "jsxComponentTree": [],
+      "jsxEventCalls": []
+    }
+  ]
+}

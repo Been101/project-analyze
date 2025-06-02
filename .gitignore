@@ -1,4 +1,3 @@
 node_modules
 web/node_modules
 web/dist
-web/public/relation.json
