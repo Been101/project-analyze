@@ -203,7 +203,6 @@ function makeElements(relations) {
       fileInfo.behaviors.forEach((bh) => {
         const bhId = `behavior_${fileInfo.file}_${bh.name}`;
         if (!nodes.some((n) => n.data.id === bhId)) {
-          // 直接用 bh.importSource 或 fileInfo.file，不做 require/path 处理
           nodes.push({
             data: {
               id: bhId,
@@ -217,38 +216,65 @@ function makeElements(relations) {
     }
   });
 
-  // behaviors/behavior.js → dataBehavior → getData【B】链路
+  // behaviors/behavior.js → dataBehavior/eventBehavior → getData【B】/initEvent【B】链路
   relations.forEach((fileInfo) => {
     if (fileInfo.isBehavior) {
       const fileId = fileNodeMap.get(fileInfo.file);
-      const dataBehaviorNode = nodes.find(
-        (n) => n.data.type === "behavior" && n.data.file === fileInfo.file
-      );
-      if (fileId && dataBehaviorNode) {
-        edges.push({
-          data: {
-            source: fileId,
-            target: dataBehaviorNode.data.id,
-            label: "export",
-          },
-        });
-      }
-      fileInfo.functions.forEach((fn) => {
-        if (fn.name && (fn.fromBehavior || fileInfo.isBehavior)) {
-          const funcId = nodes.find(
-            (n) =>
-              n.data.label === `${fn.name}【B】` &&
-              n.data.file === fileInfo.file
-          )?.data.id;
-          if (dataBehaviorNode && funcId) {
-            edges.push({
-              data: {
-                source: dataBehaviorNode.data.id,
-                target: funcId,
-                label: "method",
-              },
-            });
-          }
+      // 遍历所有引用了该 behavior 的文件
+      relations.forEach((otherFile) => {
+        if (otherFile.behaviors && otherFile.behaviors.length > 0) {
+          otherFile.behaviors.forEach((bh) => {
+            // 判断 importSource 是否指向当前 behavior 文件
+            let importSource = bh.importSource || "";
+            const importSourceBase = importSource
+              .replace(/^\.\//, "")
+              .replace(/^\.\.\//, "")
+              .replace(/\.js$/, "")
+              .split("/")
+              .slice(-2)
+              .join("/");
+            const fileInfoBase = fileInfo.file
+              .replace(/\\/g, "/")
+              .split("/")
+              .slice(-2)
+              .join("/")
+              .replace(/\.js$/, "");
+            const resolved = fileInfoBase === importSourceBase;
+            if (resolved) {
+              const bhId = `behavior_${otherFile.file}_${bh.name}`;
+              // 1. behavior.js → dataBehavior/eventBehavior 节点（export 边）
+              edges.push({
+                data: {
+                  source: fileId,
+                  target: bhId,
+                  label: "export",
+                },
+              });
+              // 2. behavior 节点 → 混入方法节点
+              otherFile.functions.forEach((fn) => {
+                if (
+                  fn.fromBehavior &&
+                  fn.behaviorFile === fileInfo.file &&
+                  fn.behaviorName === bh.name
+                ) {
+                  const funcId = nodes.find(
+                    (n) =>
+                      n.data.label === `${fn.name}【B】` &&
+                      n.data.file === fileInfo.file
+                  )?.data.id;
+                  if (funcId) {
+                    edges.push({
+                      data: {
+                        source: bhId,
+                        target: funcId,
+                        label: "method",
+                      },
+                    });
+                  }
+                }
+              });
+            }
+          });
         }
       });
     }
@@ -466,6 +492,28 @@ const style = [
       "text-border-color": "#888",
       "text-border-width": 1,
       "text-border-opacity": 1,
+    },
+  },
+  {
+    selector: "edge[label='export']",
+    style: {
+      width: 2,
+      "line-color": "#888",
+      "target-arrow-color": "#888",
+      "target-arrow-shape": "triangle",
+      "curve-style": "bezier",
+      label: "export",
+    },
+  },
+  {
+    selector: "edge[label='method']",
+    style: {
+      width: 2,
+      "line-color": "#888",
+      "target-arrow-color": "#888",
+      "target-arrow-shape": "triangle",
+      "curve-style": "bezier",
+      label: "method",
     },
   },
 ];
