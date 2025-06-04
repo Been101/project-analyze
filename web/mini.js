@@ -50,15 +50,12 @@ function makeElements(relations) {
       let funcId = `func_${fileId}_${fn.name}`;
       // 合并 behavior 方法节点，并统一用【B】标识
       if ((fn.fromBehavior && fn.behaviorFile) || fileInfo.isBehavior) {
-        // 1. 如果是 behavior 混入方法，或当前文件本身是 behavior
-        // 2. 节点 id 统一用 behavior 文件的 fileId
         let behaviorFile = fn.behaviorFile || fileInfo.file;
         const behaviorNode = relations.find((r) => r.file === behaviorFile);
         let behaviorFunc = null;
         if (behaviorNode) {
           const behaviorFileId = fileNodeMap.get(behaviorNode.file);
           funcId = `func_${behaviorFileId}_${fn.name}`;
-          // 查找 behavior 文件中真正的函数定义
           behaviorFunc = behaviorNode.functions.find((f) => f.name === fn.name);
         }
         label = `${fn.name}【B】`;
@@ -84,6 +81,7 @@ function makeElements(relations) {
       }
       if (!fn.name) return;
       funcNodeMap.set(`${fileInfo.file}:${fn.name}`, funcId);
+      // 只为非 behavior 方法生成 fileId → funcId 的 contains 边
       if (!((fn.fromBehavior && fn.behaviorFile) || fileInfo.isBehavior)) {
         nodes.push({
           data: {
@@ -94,10 +92,10 @@ function makeElements(relations) {
             type: fn.isMiniProgramComponent ? "jsx" : "function",
           },
         });
+        edges.push({
+          data: { source: fileId, target: funcId, label: "contains" },
+        });
       }
-      edges.push({
-        data: { source: fileId, target: funcId, label: "contains" },
-      });
     });
   });
 
@@ -142,56 +140,83 @@ function makeElements(relations) {
   relations.forEach((fileInfo) => {
     if (fileInfo.jsxEventCalls && fileInfo.jsxEventCalls.length > 0) {
       fileInfo.jsxEventCalls.forEach((eventCall) => {
-        let pageId = null;
-        if (fileInfo.functions.some((f) => f.isMiniProgramPage)) {
-          pageId = funcNodeMap.get(`${fileInfo.file}:Page`);
-        }
-        // 1. 生成元素/组件节点
-        let compType = "element";
-        // 简单判断：首字母大写为组件，否则为原生元素
-        if (eventCall.component && /^[A-Z]/.test(eventCall.component)) {
-          compType = "component";
-        }
-        const compLabel = eventCall.component || "元素";
-        console.log("compLabel", compLabel);
-        const compNodeId = `eventcomp_${fileInfo.file}_${compLabel}`;
-        const compLoc = eventCall.loc || null;
-        console.log(
-          "!nodes.some((n) => n.data.id === compNodeId)",
-          !nodes.some((n) => n.data.id === compNodeId)
+        // 判断是否为 usingComponents 里的组件
+        const usingComp = (fileInfo.usingComponents || []).find(
+          (c) => c.name === eventCall.component
         );
-        if (!nodes.some((n) => n.data.id === compNodeId)) {
-          nodes.push({
-            data: {
-              id: compNodeId,
-              label: compLabel,
-              file: fileInfo.file,
-              type: compType,
-              loc: compLoc,
-            },
+        if (usingComp) {
+          // 直接从组件节点（如 World[C]）画 bindtap 到事件处理方法节点
+          // 查找组件节点 id
+          const compFile = usingComp.path;
+          const compNode = nodes.find(
+            (n) => n.data.type === "jsx" && n.data.file === compFile
+          );
+          const compNodeId = compNode && compNode.data.id;
+          const targetId = funcNodeMap.get(
+            `${fileInfo.file}:${eventCall.target}`
+          );
+          console.log("[event-bind-debug]", {
+            usingComp,
+            compFile,
+            compNodeId,
+            targetId,
+            event: eventCall.event,
+            target: eventCall.target,
           });
-        }
-        // 2. Page[F] → 元素/组件节点
-        console.log("pageId", pageId);
-        if (pageId) {
-          edges.push({
-            data: {
-              source: pageId,
-              target: compNodeId,
-              label: "contains",
-            },
-          });
-        }
-        // 3. 元素/组件节点 → 事件处理方法节点
-        let targetId = funcNodeMap.get(`${fileInfo.file}:${eventCall.target}`);
-        if (compNodeId && targetId) {
-          edges.push({
-            data: {
-              source: compNodeId,
-              target: targetId,
-              label: eventCall.event,
-            },
-          });
+          if (compNodeId && targetId) {
+            edges.push({
+              data: {
+                source: compNodeId,
+                target: targetId,
+                label: eventCall.event,
+              },
+            });
+          }
+        } else {
+          // 原有逻辑：生成事件节点和 contains 边
+          let pageId = null;
+          if (fileInfo.functions.some((f) => f.isMiniProgramPage)) {
+            pageId = funcNodeMap.get(`${fileInfo.file}:Page`);
+          }
+          let compType = "element";
+          if (eventCall.component && /^[A-Z]/.test(eventCall.component)) {
+            compType = "component";
+          }
+          const compLabel = eventCall.component || "元素";
+          const compNodeId = `eventcomp_${fileInfo.file}_${compLabel}`;
+          const compLoc = eventCall.loc || null;
+          if (!nodes.some((n) => n.data.id === compNodeId)) {
+            nodes.push({
+              data: {
+                id: compNodeId,
+                label: compLabel,
+                file: fileInfo.file,
+                type: compType,
+                loc: compLoc,
+              },
+            });
+          }
+          if (pageId) {
+            edges.push({
+              data: {
+                source: pageId,
+                target: compNodeId,
+                label: "contains",
+              },
+            });
+          }
+          let targetId = funcNodeMap.get(
+            `${fileInfo.file}:${eventCall.target}`
+          );
+          if (compNodeId && targetId) {
+            edges.push({
+              data: {
+                source: compNodeId,
+                target: targetId,
+                label: eventCall.event,
+              },
+            });
+          }
         }
       });
     }

@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "首页",
   "usingComponents": {
-    "Hello": "../../components/Hello/Hello"
+    "Hello": "../../components/Hello/Hello",
+    "World": "../../components/World/World"
   }
 }

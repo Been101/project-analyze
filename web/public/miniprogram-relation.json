@@ -126,6 +126,24 @@
           "isExportDefault": false,
           "isComponent": false,
           "isMiniProgramMethod": true
+        },
+        {
+          "name": "onWorldTap",
+          "loc": {
+            "start": {
+              "line": 19,
+              "column": 4,
+              "index": 371
+            },
+            "end": {
+              "line": 21,
+              "column": 5,
+              "index": 426
+            }
+          },
+          "isExportDefault": false,
+          "isComponent": false,
+          "isMiniProgramMethod": true
         }
       ],
       "functionCalls": [
@@ -214,12 +232,25 @@
             "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/pages/home/home.wxml",
             "line": 3
           }
+        },
+        {
+          "component": "World",
+          "event": "bindtap",
+          "target": "onWorldTap",
+          "loc": {
+            "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/pages/home/home.wxml",
+            "line": 5
+          }
         }
       ],
       "usingComponents": [
         {
           "name": "Hello",
           "path": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/components/Hello/Hello.js"
+        },
+        {
+          "name": "World",
+          "path": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/components/World/World.js"
         }
       ],
       "behaviors": [
@@ -232,6 +263,26 @@
           "importSource": "../../behaviors/behavior"
         }
       ]
+    },
+    {
+      "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/components/World/World.js",
+      "imports": [],
+      "functions": [
+        {
+          "name": "Component",
+          "loc": null,
+          "isExportDefault": false,
+          "isComponent": true,
+          "isMiniProgramComponent": true
+        }
+      ],
+      "functionCalls": [],
+      "jsxComponents": [],
+      "jsxContains": [],
+      "jsxComponentTree": [],
+      "jsxEventCalls": [],
+      "usingComponents": [],
+      "behaviors": []
     },
     {
       "file": "/Users/zhenglaibin/demo/project-analyze/analyze/test-miniprogram/components/Hello/Hello.js",

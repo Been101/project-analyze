@@ -16,5 +16,8 @@ Page({
     getList() {
       return this.getData();
     },
+    onWorldTap() {
+      console.log("点击了 World 组件");
+    },
   },
 });
