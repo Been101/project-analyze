@@ -37,7 +37,7 @@ function makeElements(relations) {
         file: fileInfo.file,
         type: "file",
       },
-      position: { x: fileX * 200 + 100, y: 150 },
+      position: { x: fileX * 200 + 100, y: 0 },
     });
     fileX++;
   });
@@ -48,6 +48,7 @@ function makeElements(relations) {
     fileInfo.functions.forEach((fn) => {
       let label = fn.name;
       let funcId = `func_${fileId}_${fn.name}`;
+      let y = 600; // 默认方法/事件节点在最底层
       // 合并 behavior 方法节点，并统一用【B】标识
       if ((fn.fromBehavior && fn.behaviorFile) || fileInfo.isBehavior) {
         let behaviorFile = fn.behaviorFile || fileInfo.file;
@@ -59,6 +60,7 @@ function makeElements(relations) {
           behaviorFunc = behaviorNode.functions.find((f) => f.name === fn.name);
         }
         label = `${fn.name}【B】`;
+        // behavior 方法节点也在最底层
         nodes.push({
           data: {
             id: funcId,
@@ -71,17 +73,20 @@ function makeElements(relations) {
               behaviorFunc.loc.start.line,
             type: fn.isMiniProgramComponent ? "jsx" : "function",
           },
+          position: { x: 0, y },
         });
       } else if (fn.isMiniProgramComponent) {
         const dirs = fileInfo.file.split("/");
         const compName = dirs[dirs.length - 2];
         label = compName + "【C】";
+        y = 200; // 组件节点在第二层
+      } else if (fn.isMiniProgramPage) {
+        y = 200; // Page 节点在第二层
       } else {
         label = `${fn.name}【F】`;
       }
       if (!fn.name) return;
       funcNodeMap.set(`${fileInfo.file}:${fn.name}`, funcId);
-      // 只为非 behavior 方法生成 fileId → funcId 的 contains 边
       if (!((fn.fromBehavior && fn.behaviorFile) || fileInfo.isBehavior)) {
         nodes.push({
           data: {
@@ -91,6 +96,7 @@ function makeElements(relations) {
             line: fn.loc && fn.loc.start && fn.loc.start.line,
             type: fn.isMiniProgramComponent ? "jsx" : "function",
           },
+          position: { x: 0, y },
         });
         edges.push({
           data: { source: fileId, target: funcId, label: "contains" },
@@ -194,6 +200,7 @@ function makeElements(relations) {
                 type: compType,
                 loc: compLoc,
               },
+              position: { x: 0, y: 400 },
             });
           }
           if (pageId) {
@@ -235,6 +242,7 @@ function makeElements(relations) {
               file: bh.importSource || fileInfo.file,
               type: "behavior",
             },
+            position: { x: 0, y: 200 }, // behavior 节点在第二层
           });
         }
       });
