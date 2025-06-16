@@ -3,13 +3,15 @@ const fs = require("fs");
 const glob = require("glob");
 const parser = require("@babel/parser");
 const traverse = require("@babel/traverse").default;
+const JSON5 = require('json5');
 
 // 默认分析 test-miniprogram 目录
-const targetDir = path.resolve(__dirname, "./test-miniprogram");
+// const targetDir = path.resolve(__dirname, "/Users/zhenglaibin/sqb/mp-membership-coupon/packages/campus-home/src/campus");
+const targetDir = "/Users/zhenglaibin/sqb/mp-membership-coupon/packages/campus-home/src/campus";
 console.log("分析目标目录:", targetDir);
 
 // 支持的文件类型
-const exts = ["js", "jsx", "ts", "tsx"];
+const exts = ["js", "jsx", "ts", "tsx", "json5"];
 const patterns = exts.map((ext) => path.join(targetDir, "**", `*.${ext}`));
 
 // 获取所有相关文件
@@ -23,6 +25,12 @@ console.log("待分析文件数:", files.length);
 
 const relations = [];
 const globalFunctions = [];
+
+// 添加 json5 文件读取函数
+function readJson5File(filePath) {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  return JSON5.parse(content);
+}
 
 function isComponentName(name) {
   return name && /^[A-Z]/.test(name);
@@ -233,7 +241,7 @@ const parseMethodsFromPageOrComponent = (
         path.parent.type === "ObjectExpression" &&
         path.parentPath.parent &&
         path.parentPath.parent.callee &&
-        ["Page", "Component"].includes(path.parentPath.parent.callee.name)
+        ["Page", "Component", "wComponent"].includes(path.parentPath.parent.callee.name)
       ) {
         if (
           path.node.key &&
@@ -315,19 +323,11 @@ const parseMethodsFromPageOrComponent = (
   });
 };
 
-files.forEach((file) => {
+// 解析文件内容
+function parseFile(file) {
   const code = fs.readFileSync(file, "utf-8");
   let ast;
-  try {
-    ast = parser.parse(code, {
-      sourceType: "module",
-      plugins: ["jsx", "typescript"],
-    });
-  } catch (e) {
-    console.error(`解析失败: ${file}`);
-    return;
-  }
-  const fileInfo = {
+  let fileInfo = {
     file,
     imports: [],
     functions: [],
@@ -338,251 +338,273 @@ files.forEach((file) => {
     jsxEventCalls: [],
     usingComponents: [],
     behaviors: [],
+    ast: null,
   };
-  let exportDefaultName = null;
-  traverse(ast, {
-    // 检查是否为 Behavior 文件
-    CallExpression(path) {
-      if (path.node.callee && path.node.callee.name === "Behavior") {
-        fileInfo.isBehavior = true;
-      }
-    },
-    // ...可选：可补充函数声明、调用等分析...
-  });
-  // 记录 import { X } from '...' 语法
-  traverse(ast, {
-    ImportDeclaration(path) {
-      fileInfo.imports.push({
-        source: path.node.source.value,
-        specifiers: path.node.specifiers.map((s) => s.local.name),
-      });
-    },
-  });
-  // 解析 behaviors 字段
-  traverse(ast, {
-    ObjectProperty(path) {
-      if (
-        path.node.key.name === "behaviors" &&
-        path.node.value.type === "ArrayExpression"
-      ) {
-        path.node.value.elements.forEach((el) => {
-          if (el.type === "Identifier") {
-            // 在 imports 里查找路径
-            const imp = fileInfo.imports.find((i) =>
-              i.specifiers.includes(el.name)
-            );
-            fileInfo.behaviors.push({
-              name: el.name,
-              importSource: imp ? imp.source : null,
-            });
-          }
-        });
-      }
-    },
-  });
-  // 查找同目录同名 .json/.wxml
-  const base = file.replace(/\.(js|jsx|ts|tsx)$/, "");
-  const jsonPath = base + ".json";
-  if (fs.existsSync(jsonPath)) {
-    try {
-      const jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+
+  try {
+    // 如果是 json5 文件，使用 JSON5 解析
+    if (file.endsWith('.json5')) {
+      const jsonData = JSON5.parse(code);
       if (jsonData.usingComponents) {
-        for (const [name, pathVal] of Object.entries(
-          jsonData.usingComponents
-        )) {
-          // 归一化为绝对路径，并补全 .js 后缀
-          let absPath = path.resolve(path.dirname(jsonPath), pathVal);
-          if (!absPath.endsWith(".js")) absPath += ".js";
+        for (const [name, pathVal] of Object.entries(jsonData.usingComponents)) {
+          let absPath = path.resolve(path.dirname(file), pathVal);
+          if (!absPath.endsWith(".ts")) absPath += ".ts";
           fileInfo.usingComponents.push({ name, path: absPath });
         }
       }
-    } catch (e) {
-      // ignore
+      return fileInfo;
     }
-  }
-  const wxmlPath = base + ".wxml";
-  if (fs.existsSync(wxmlPath)) {
-    const wxml = fs.readFileSync(wxmlPath, "utf-8");
-    // 匹配如 <button bindtap="handleTap"> 或 <view bindtap='handleTap'>，兼容属性顺序
-    const eventRegex =
-      /<([a-zA-Z0-9_-]+)[^>]*?\s(bind\w+)=(?:"|')([a-zA-Z0-9_]+)(?:"|')/g;
-    let match;
-    while ((match = eventRegex.exec(wxml))) {
-      // 计算行号
-      const before = wxml.slice(0, match.index);
-      const line = before.split(/\r?\n/).length;
-      fileInfo.jsxEventCalls.push({
-        component: match[1] || "",
-        event: match[2],
-        target: match[3],
-        loc: {
-          file: wxmlPath,
-          line,
-        },
-      });
+    // 如果是 json 文件，使用 JSON 解析
+    if (file.endsWith('.json')) {
+      const jsonData = JSON.parse(code);
+      if (jsonData.usingComponents) {
+        for (const [name, pathVal] of Object.entries(jsonData.usingComponents)) {
+          let absPath = path.resolve(path.dirname(file), pathVal);
+          if (!absPath.endsWith(".ts")) absPath += ".ts";
+          fileInfo.usingComponents.push({ name, path: absPath });
+        }
+      }
+      return fileInfo;
     }
-  }
-  // 收集所有 behaviors 方法
-  let behaviorsMethodsMap = {};
-  if (fileInfo.behaviors && fileInfo.behaviors.length > 0) {
-    fileInfo.behaviors.forEach((bh) => {
-      let bhPath = bh.importSource;
-      if (bhPath) {
-        const absBhPath = path.resolve(path.dirname(file), bhPath);
-        const behaviorFile = files.find(
-          (f) => f.replace(/\\/g, "/") === absBhPath + ".js"
-        );
-        if (behaviorFile) {
-          try {
-            const bhCode = fs.readFileSync(behaviorFile, "utf-8");
-            const bhAst = parser.parse(bhCode, {
-              sourceType: "module",
-              plugins: ["jsx", "typescript"],
-            });
-            traverse(bhAst, {
-              VariableDeclarator(path) {
-                if (path.node.id.name === bh.name) {
-                  path.traverse({
-                    ObjectProperty(path) {
-                      if (
-                        path.node.key.name === "methods" &&
-                        path.node.value.type === "ObjectExpression"
-                      ) {
-                        path.node.value.properties.forEach((prop) => {
-                          if (
-                            (prop.type === "ObjectMethod" ||
-                              prop.type === "ObjectProperty") &&
-                            prop.key &&
-                            prop.key.name
-                          ) {
-                            console.log("bh.name", bh.name);
-                            console.log("prop.key.name", prop.key.name);
-                            addFunctionIfNotExists(fileInfo.functions, {
-                              name: prop.key.name,
-                              loc: prop.loc || null,
-                              isExportDefault: false,
-                              isComponent: false,
-                              isMiniProgramMethod: true,
-                              fromBehavior: true,
-                              behaviorName: bh.name,
-                              behaviorFile: behaviorFile,
-                            });
-                            // 关键：补充 behaviorsMethodsMap
-                            behaviorsMethodsMap[prop.key.name] = {
-                              file: behaviorFile,
-                              loc: prop.loc || null,
-                            };
-                          }
-                        });
-                      }
-                    },
+
+    // 对于 JS/TS 文件，使用 babel 解析
+    const parserOptions = {
+      sourceType: "module",
+      plugins: ["jsx", "typescript"],
+    };
+
+    if (file.endsWith('.ts') || file.endsWith('.tsx')) {
+      parserOptions.plugins = [
+        "jsx",
+        "typescript",
+        "classProperties",
+        "decorators-legacy"
+      ];
+    }
+
+    ast = parser.parse(code, parserOptions);
+    fileInfo.ast = ast;
+
+    // 解析 AST
+    traverse(ast, {
+      // 检查是否为 Behavior 文件
+      CallExpression(path) {
+        if (path.node.callee && path.node.callee.name === "Behavior") {
+          fileInfo.isBehavior = true;
+        }
+      },
+    });
+
+    // 记录 import 语句
+    traverse(ast, {
+      ImportDeclaration(path) {
+        fileInfo.imports.push({
+          source: path.node.source.value,
+          specifiers: path.node.specifiers.map((s) => s.local.name),
+        });
+      },
+    });
+
+    // 解析 behaviors 字段
+    traverse(ast, {
+      ObjectProperty(path) {
+        if (
+          path.node.key.name === "behaviors" &&
+          path.node.value.type === "ArrayExpression"
+        ) {
+          path.node.value.elements.forEach((el) => {
+            if (el.type === "Identifier") {
+              const imp = fileInfo.imports.find((i) =>
+                i.specifiers.includes(el.name)
+              );
+              fileInfo.behaviors.push({
+                name: el.name,
+                importSource: imp ? imp.source : null,
+              });
+            }
+          });
+        }
+      },
+    });
+
+    // 解析标准小程序 Component({ ... }) 的 methods 字段
+    traverse(ast, {
+      CallExpression(path) {
+        if (
+          path.node.callee &&
+          path.node.callee.name === "Component" &&
+          path.node.arguments &&
+          path.node.arguments.length > 0
+        ) {
+          const arg = path.node.arguments[0];
+          if (arg.type === "ObjectExpression") {
+            const methodsProp = arg.properties.find(
+              (p) => p.type === "ObjectProperty" && p.key.name === "methods"
+            );
+            if (methodsProp && methodsProp.value.type === "ObjectExpression") {
+              methodsProp.value.properties.forEach((prop) => {
+                if (
+                  (prop.type === "ObjectMethod" || prop.type === "ObjectProperty") &&
+                  prop.key &&
+                  prop.key.name
+                ) {
+                  addFunctionIfNotExists(fileInfo.functions, {
+                    name: prop.key.name,
+                    loc: prop.loc || null,
+                    isExportDefault: false,
+                    isComponent: false,
+                    isMiniProgramMethod: true,
                   });
                 }
-              },
-            });
-          } catch (e) {}
+              });
+            }
+          }
+        }
+      },
+    });
+
+    // 解析 wComponent({ ... }) 的 methods 字段
+    traverse(ast, {
+      CallExpression(path) {
+        if (
+          path.node.callee &&
+          path.node.callee.name === "wComponent" &&
+          path.node.arguments &&
+          path.node.arguments.length > 0
+        ) {
+          const arg = path.node.arguments[0];
+          if (arg.type === "ObjectExpression") {
+            const methodsProp = arg.properties.find(
+              (p) => p.type === "ObjectProperty" && p.key.name === "methods"
+            );
+            if (methodsProp && methodsProp.value.type === "ObjectExpression") {
+              methodsProp.value.properties.forEach((prop) => {
+                if (
+                  (prop.type === "ObjectMethod" || prop.type === "ObjectProperty") &&
+                  prop.key &&
+                  prop.key.name
+                ) {
+                  addFunctionIfNotExists(fileInfo.functions, {
+                    name: prop.key.name,
+                    loc: prop.loc || null,
+                    isExportDefault: false,
+                    isComponent: false,
+                    isMiniProgramMethod: true,
+                  });
+                }
+              });
+            }
+          }
+        }
+      },
+    });
+
+    // 检查是否提取到方法和事件
+    if ((file.endsWith('.ts') || file.endsWith('.js')) && fileInfo.functions.length === 0) {
+      console.log('[DEBUG] 未提取到方法:', file);
+    }
+    // 检查 jsxEventCalls
+    const base = file.replace(/\.(js|jsx|ts|tsx|json5)$/, "");
+    const wxmlPath = base + ".wxml";
+    if (fileInfo.jsxEventCalls.length === 0 && fs.existsSync(wxmlPath)) {
+      console.log('[DEBUG] 未提取到事件:', wxmlPath);
+    }
+
+    return fileInfo;
+  } catch (e) {
+    console.error(`解析失败: ${file}`);
+    console.error('错误详情:', e.message);
+    return fileInfo;
+  }
+}
+
+// 新增：查找入口文件
+function findEntryFile(targetDir) {
+  const files = fs.readdirSync(targetDir);
+  if (files.includes('index.ts')) return path.join(targetDir, 'index.ts');
+  if (files.includes('index.tsx')) return path.join(targetDir, 'index.tsx');
+  const tsFiles = files.filter(f => f.endsWith('.ts') || f.endsWith('.tsx'));
+  if (tsFiles.length === 1) return path.join(targetDir, tsFiles[0]);
+  if (tsFiles.length > 1) {
+    const tsOnly = tsFiles.filter(f => f.endsWith('.ts'));
+    if (tsOnly.length === 1) return path.join(targetDir, tsOnly[0]);
+  }
+  return null;
+}
+
+// 递归分析依赖链
+const visited = new Set();
+function analyzeFileRecursively(file) {
+  if (visited.has(file)) return;
+  visited.add(file);
+  console.log('[DEBUG] 递归分析文件:', file);
+  const fileInfo = parseFile(file);
+
+  // ts/tsx 文件合并同名 .json5/.json 的 usingComponents
+  if (file.endsWith('.ts') || file.endsWith('.tsx')) {
+    const base = file.replace(/\.(ts|tsx)$/, '');
+    const json5Path = base + '.json5';
+    const jsonPath = base + '.json';
+    let usingComponents = fileInfo.usingComponents || [];
+    if (fs.existsSync(json5Path)) {
+      const json5Info = parseFile(json5Path);
+      if (json5Info.usingComponents && json5Info.usingComponents.length > 0) {
+        usingComponents = usingComponents.concat(json5Info.usingComponents);
+      }
+    }
+    if (fs.existsSync(jsonPath)) {
+      const jsonInfo = parseFile(jsonPath);
+      if (jsonInfo.usingComponents && jsonInfo.usingComponents.length > 0) {
+        usingComponents = usingComponents.concat(jsonInfo.usingComponents);
+      }
+    }
+    if (usingComponents.length > 0) {
+      fileInfo.usingComponents = usingComponents;
+    }
+  }
+
+  relations.push(fileInfo);
+
+  // 递归分析 usingComponents
+  if (fileInfo.usingComponents && fileInfo.usingComponents.length > 0) {
+    fileInfo.usingComponents.forEach(comp => {
+      if (comp.path) {
+        let absPath = comp.path;
+        if (!path.isAbsolute(absPath)) {
+          absPath = path.resolve(path.dirname(file), comp.path);
+        }
+        if (fs.existsSync(absPath)) {
+          analyzeFileRecursively(absPath);
         }
       }
     });
   }
-  // Page/Component/Behavior 方法提取
-  if (code.includes("Page({")) {
-    // 强制添加页面节点
-    addFunctionIfNotExists(fileInfo.functions, {
-      name: "Page",
-      loc: null,
-      isExportDefault: false,
-      isComponent: false,
-      isMiniProgramPage: true,
-    });
-    // 1. 先补全 behaviorsMethodsMap（包括所有 behaviors 方法）
-    if (fileInfo.behaviors && fileInfo.behaviors.length > 0) {
-      fileInfo.behaviors.forEach((bh) => {
-        let bhPath = bh.importSource;
-        if (bhPath) {
-          const absBhPath = path.resolve(path.dirname(file), bhPath);
-          const behaviorFile = files.find(
-            (f) => f.replace(/\\/g, "/") === absBhPath + ".js"
-          );
-          if (behaviorFile) {
-            try {
-              const bhCode = fs.readFileSync(behaviorFile, "utf-8");
-              const bhAst = parser.parse(bhCode, {
-                sourceType: "module",
-                plugins: ["jsx", "typescript"],
-              });
-              console.log("bhAst ---> ");
-              traverse(bhAst, {
-                VariableDeclarator(path) {
-                  if (path.node.id.name === bh.name) {
-                    path.traverse({
-                      ObjectProperty(path) {
-                        if (
-                          path.node.key.name === "methods" &&
-                          path.node.value.type === "ObjectExpression"
-                        ) {
-                          path.node.value.properties.forEach((prop) => {
-                            if (
-                              (prop.type === "ObjectMethod" ||
-                                prop.type === "ObjectProperty") &&
-                              prop.key &&
-                              prop.key.name
-                            ) {
-                              console.log("bh.name", bh.name);
-                              console.log("prop.key.name", prop.key.name);
-                              addFunctionIfNotExists(fileInfo.functions, {
-                                name: prop.key.name,
-                                loc: prop.loc || null,
-                                isExportDefault: false,
-                                isComponent: false,
-                                isMiniProgramMethod: true,
-                                fromBehavior: true,
-                                behaviorName: bh.name,
-                                behaviorFile: behaviorFile,
-                              });
-                              // 关键：补充 behaviorsMethodsMap
-                              behaviorsMethodsMap[prop.key.name] = {
-                                file: behaviorFile,
-                                loc: prop.loc || null,
-                              };
-                            }
-                          });
-                        }
-                      },
-                    });
-                  }
-                },
-              });
-            } catch (e) {}
-          }
-        }
-      });
-    }
-    // 2. behaviorsMethodsMap 补全后，统一分析 methods，确保 this.getData() 能识别 behavior 方法
-    parseMethodsFromPageOrComponent(ast, fileInfo, behaviorsMethodsMap);
-  }
-  if (code.includes("Component({")) {
-    // 强制添加组件节点
-    addFunctionIfNotExists(fileInfo.functions, {
-      name: "Component",
-      loc: null,
-      isExportDefault: false,
-      isComponent: true,
-      isMiniProgramComponent: true,
-    });
-    parseMethodsFromPageOrComponent(ast, fileInfo, behaviorsMethodsMap);
-  }
-  // 对所有 js 文件都提取 methods 下的方法（包括 behavior）
-  parseMethodsFromPageOrComponent(ast, fileInfo, behaviorsMethodsMap);
-  // 在 relations.push(fileInfo) 前输出 home/home.js 的 functionCalls
-  if (fileInfo.file.includes("home/home.js")) {
-    // console.log("home/home.js functionCalls:", fileInfo.functionCalls);
-  }
-  relations.push(fileInfo);
-});
+}
+
+// 入口文件查找
+const entryFile = findEntryFile(targetDir);
+if (!entryFile) {
+  console.error('未找到入口文件');
+  process.exit(1);
+}
+console.log('入口文件:', entryFile);
+analyzeFileRecursively(entryFile);
+
+// 最终输出所有文件的 usingComponents 字段
+console.log('\n[SUMMARY] 所有文件的 usingComponents 字段:');
+// console.log(relations.map(r => ({ file: r.file, usingComponents: r.usingComponents })));
+
+console.log('解析完成，共处理文件数:', relations.length);
+// console.log('组件关系:', relations.map(r => ({
+//   file: r.file,
+//   usingComponents: r.usingComponents,
+//   behaviors: r.behaviors,
+//   functions: r.functions.map(f => f.name)
+// })));
+
 
 fs.writeFileSync(
-  path.join(process.cwd(), "relation.json"),
+  path.resolve( "/Users/zhenglaibin/demo/project-analyze/web/public/miniprogram-relation.json"),
   JSON.stringify({ relations }, null, 2),
   "utf-8"
 );
